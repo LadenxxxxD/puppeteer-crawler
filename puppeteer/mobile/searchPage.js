@@ -11,20 +11,10 @@ const Details_Link_Selector = '#wrapper>div.main>div.list-box>div.series.clearfi
 // 三种配置li的path
 const List_Link_Selector = '#wrapper > div.main > div.list-box > div.series.clearfix > div.intro > ul > li'
 // const mobile = 'oppo find x3';
-const headlessMode = false;
-
-const getBrowserInstance = async (headless) => {
-  const browser = await puppeteer.launch({
-    headless
-  });
-  return browser;
-}
-
-// const browser = getBrowserInstance(false);
 
 export const openSearchPage = async (mobile) => {
   const browser = await puppeteer.launch({
-    headless: false
+    headless: true
   });
 
   const indexPage = await browser.newPage();
@@ -76,7 +66,7 @@ export const openSearchPage = async (mobile) => {
       data: null
     };
   }
-  const links = await indexPage.$$eval(List_Link_Selector, (lis, mobile) =>
+  let links = await indexPage.$$eval(List_Link_Selector, (lis, mobile) =>
     lis.map(item => {
       const a = item.querySelector('a');
       const hasMobile = a.innerText.toLowerCase().includes(mobile.toLowerCase());
@@ -88,13 +78,15 @@ export const openSearchPage = async (mobile) => {
       }
     }), mobile
   );
+  links = links.filter(item => item)
   console.log('links: ', links);
-  fs.appendFile('./data/links.js', JSON.stringify(links), {}, (err) => {
+  fs.writeFile('./data/links.json', JSON.stringify(links), {}, (err) => {
     if (err) {
       return console.log('写入失败', err.message);
     }
     console.log('写入成功');
   });
+  browser.close();
 }
 
 openSearchPage('oppo find x3');
